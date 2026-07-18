@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sixty Second Seminar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Caveat:wght@500;700&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --board: #1e3a30;
+    --board-dark: #16281f;
+    --chalk: #f1ede1;
+    --chalk-dim: #cfd8c9;
+    --yellow: #e8c468;
+    --coral: #e2857a;
+    --blue: #8fb9c9;
+    --wood: #6b4a34;
+    --wood-dark: #4d3323;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--wood-dark);
+    background-image:
+      repeating-linear-gradient(90deg, rgba(0,0,0,0.08) 0px, rgba(0,0,0,0.08) 2px, transparent 2px, transparent 40px);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'Inter', sans-serif;
+    color:var(--chalk);
+    padding:20px;
+  }
+  .frame{
+    width:100%;
+    max-width:760px;
+    background: linear-gradient(180deg, var(--wood) 0%, var(--wood-dark) 100%);
+    border-radius:14px;
+    padding:14px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 0 3px rgba(0,0,0,0.2);
+  }
+  .board{
+    position:relative;
+    background:
+      radial-gradient(ellipse at 20% 15%, rgba(255,255,255,0.05), transparent 45%),
+      radial-gradient(ellipse at 80% 85%, rgba(255,255,255,0.04), transparent 50%),
+      var(--board);
+    border-radius:6px;
+    padding:28px 26px 22px;
+    min-height:520px;
+    overflow:hidden;
+    box-shadow: inset 0 0 40px rgba(0,0,0,0.45);
+  }
+  .board::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0px, transparent 1px, transparent 3px);
+    pointer-events:none;
+  }
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:6px;
+  }
+  .title{
+    font-family:'Permanent Marker', cursive;
+    font-size:26px;
+    color:var(--chalk);
+    letter-spacing:0.5px;
+    transform: rotate(-1deg);
+    text-shadow: 0 0 8px rgba(241,237,225,0.15);
+  }
+  .subtitle{
+    font-family:'Caveat', cursive;
+    font-size:17px;
+    color:var(--chalk-dim);
+    margin-top:-4px;
+  }
+  .stats{
+    text-align:right;
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    color:var(--chalk-dim);
+    line-height:1.6;
+  }
+  .stats b{ color:var(--yellow); font-size:15px; }
+
+  .timer-wrap{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin: 10px 0 22px;
+  }
+  .clock{
+    position:relative;
+    width:58px; height:58px;
+    flex-shrink:0;
+  }
+  .clock svg{ width:100%; height:100%; transform: rotate(-90deg); }
+  .clock circle.track{ fill:none; stroke: rgba(241,237,225,0.15); stroke-width:5; }
+  .clock circle.fill{ fill:none; stroke: var(--yellow); stroke-width:5; stroke-linecap:round; transition: stroke-dashoffset 1s linear, stroke 0.3s; }
+  .clock .num{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:16px;
+  }
+  .timer-bar{
+    flex:1;
+    height:10px;
+    background: rgba(0,0,0,0.25);
+    border-radius:6px;
+    overflow:hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+  }
+  .timer-bar-fill{
+    height:100%;
+    background: linear-gradient(90deg, var(--yellow), var(--coral));
+    width:100%;
+    transition: width 1s linear;
+  }
+
+  .qrow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .qtag{
+    display:inline-block;
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color: var(--board-dark);
+    background: var(--blue);
+    padding:3px 9px;
+    border-radius:3px;
+    opacity:0.9;
+  }
+  .copy-btn{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color: var(--chalk-dim);
+    background: transparent;
+    border:1px solid rgba(241,237,225,0.35);
+    border-radius:4px;
+    padding:4px 10px;
+    cursor:pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .copy-btn:hover{ border-color: var(--chalk); color: var(--chalk); background: rgba(241,237,225,0.06); }
+  .copy-btn.copied{ border-color: var(--yellow); color: var(--yellow); }
+  .question{
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:21px;
+    line-height:1.45;
+    color:var(--chalk);
+    margin-bottom:22px;
+    min-height:80px;
+  }
+  .choices{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:12px;
+  }
+  @media (max-width:520px){ .choices{ grid-template-columns:1fr; } }
+  .choice{
+    text-align:left;
+    background: transparent;
+    border:2px solid rgba(241,237,225,0.35);
+    border-radius:8px;
+    color:var(--chalk);
+    font-family:'Inter', sans-serif;
+    font-size:15px;
+    font-weight:500;
+    padding:12px 14px;
+    cursor:pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+  }
+  .choice:hover{ border-color: var(--chalk); background: rgba(241,237,225,0.06); }
+  .choice:active{ transform: scale(0.98); }
+  .choice.correct{ border-color: var(--yellow); background: rgba(232,196,104,0.18); }
+  .choice.wrong{ border-color: var(--coral); background: rgba(226,133,122,0.18); }
+  .choice[disabled]{ cursor:default; }
+
+  .feedback{
+    margin-top:16px;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    color: var(--yellow);
+    min-height:26px;
+  }
+
+  .eraser-wipe{
+    position:absolute; inset:0;
+    background: var(--board);
+    transform: scaleX(0);
+    transform-origin: left;
+    z-index:5;
+    pointer-events:none;
+  }
+  .eraser-wipe.active{
+    animation: wipe 0.55s ease-in-out forwards;
+  }
+  @keyframes wipe{
+    to{ transform: scaleX(1); }
+  }
+
+  .endcard{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center;
+    background: var(--board);
+    z-index:6;
+    padding:20px;
+  }
+  .endcard.hidden{ display:none; }
+  .endcard h2{
+    font-family:'Permanent Marker', cursive;
+    font-size:32px;
+    margin:0 0 8px;
+    color:var(--yellow);
+  }
+  .endcard p{
+    font-family:'Caveat', cursive;
+    font-size:22px;
+    margin:4px 0;
+    color: var(--chalk-dim);
+  }
+  .endcard .big{
+    font-family:'Space Mono', monospace;
+    font-size:44px;
+    font-weight:700;
+    color:var(--chalk);
+    margin: 10px 0;
+  }
+  .endcard small{
+    margin-top:18px;
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    color: var(--chalk-dim);
+    opacity:0.7;
+  }
+
+  footer.tray{
+    margin-top:10px;
+    text-align:center;
+    font-family:'Caveat', cursive;
+    font-size:15px;
+    color: rgba(241,237,225,0.5);
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="board" id="board">
+    <div class="eraser-wipe" id="wipe"></div>
+    <div class="endcard hidden" id="endcard">
+      <h2>Time's up.</h2>
+      <p>Correct answers this round</p>
+      <div class="big" id="finalScore">0</div>
+      <p id="bestLine">Best: 0</p>
+      <small>New round starting…</small>
+    </div>
+
+    <header>
+      <div>
+        <div class="title">Sixty Second Seminar</div>
+        <div class="subtitle">university-level science, one minute at a time</div>
+      </div>
+      <div class="stats">
+        SCORE <b id="score">0</b><br>
+        BEST <span id="best">0</span>
+      </div>
+    </header>
+
+    <div class="timer-wrap">
+      <div class="clock">
+        <svg viewBox="0 0 60 60">
+          <circle class="track" cx="30" cy="30" r="26"></circle>
+          <circle class="fill" id="clockFill" cx="30" cy="30" r="26" stroke-dasharray="163.36" stroke-dashoffset="0"></circle>
+        </svg>
+        <div class="num" id="clockNum">60</div>
+      </div>
+      <div class="timer-bar"><div class="timer-bar-fill" id="barFill"></div></div>
+    </div>
+
+    <div class="qrow">
+      <div class="qtag" id="qtag">PHYSICS</div>
+      <button class="copy-btn" id="copyBtn" type="button" title="Copy question">Copy</button>
+    </div>
+    <div class="question" id="question">Loading…</div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+  
+  <footer style="text-align: center; padding: 20px; margin-top: 40px; font-size: 0.85rem; color: #888; border-top: 1px solid #e0e0e0;">
+  <p>© 2026. Created by Lona Matshingana in the Republic of South Africa · <a href="mailto:matshinganalona@gmail.com" style="color: #888; text-decoration: none;">matshinganalona@gmail.com</a></p>
+</footer>
+  <footer class="tray">chalk provided · eraser included</footer>
+</div>
+
+<script>
+const QUESTIONS = [
+  {tag:"Physics", q:"A photon's energy is proportional to its frequency. Which equation expresses this (Planck's relation)?", choices:["E = mc²","E = hf","F = ma","E = ½mv²"], a:1},
+  {tag:"Physics", q:"In special relativity, what happens to an object's measured length as its speed approaches c, from a stationary observer's frame?", choices:["It increases","It stays the same","It contracts toward zero","It becomes imaginary"], a:2},
+  {tag:"Physics", q:"Which quantum number determines the shape of an electron's orbital?", choices:["Principal (n)","Azimuthal (l)","Magnetic (mₗ)","Spin (mₛ)"], a:1},
+  {tag:"Physics", q:"The second law of thermodynamics implies that in an isolated system, entropy over time will:", choices:["Always decrease","Remain constant only","Never decrease","Oscillate randomly"], a:2},
+  {tag:"Physics", q:"What is the SI unit of magnetic flux density?", choices:["Weber","Tesla","Henry","Gauss"], a:1},
+  {tag:"Physics", q:"Which phenomenon demonstrates the wave nature of electrons?", choices:["Photoelectric effect","Compton scattering","Davisson–Germer diffraction","Zeeman effect"], a:2},
+  {tag:"Physics", q:"For a damped harmonic oscillator, critical damping is the condition where the system:", choices:["Oscillates indefinitely","Returns to equilibrium fastest without oscillating","Never returns to equilibrium","Oscillates with increasing amplitude"], a:1},
+  {tag:"Physics", q:"Which of these is a conserved quantity in an elastic collision but NOT in an inelastic one?", choices:["Momentum","Kinetic energy","Mass","Charge"], a:1},
+
+  {tag:"Chemistry", q:"According to VSEPR theory, a molecule with 4 bonding pairs and 0 lone pairs on the central atom adopts what geometry?", choices:["Trigonal planar","Tetrahedral","Octahedral","Bent"], a:1},
+  {tag:"Chemistry", q:"Which type of intermolecular force is primarily responsible for water's unusually high boiling point?", choices:["London dispersion","Dipole–dipole","Hydrogen bonding","Ion–dipole"], a:2},
+  {tag:"Chemistry", q:"In an SN2 reaction, the rate depends on the concentration of:", choices:["Only the substrate","Only the nucleophile","Both substrate and nucleophile","Neither species"], a:2},
+  {tag:"Chemistry", q:"Le Chatelier's principle predicts that increasing pressure on a gaseous equilibrium will shift it toward the side with:", choices:["More moles of gas","Fewer moles of gas","Equal moles always","No predictable direction"], a:1},
+  {tag:"Chemistry", q:"Which orbital hybridization is present in the carbon atoms of benzene?", choices:["sp","sp²","sp³","sp³d"], a:1},
+  {tag:"Chemistry", q:"The oxidation state of manganese in KMnO₄ is:", choices:["+2","+4","+6","+7"], a:3},
+  {tag:"Chemistry", q:"A buffer resists pH change most effectively when the ratio of conjugate base to acid is:", choices:["Close to 1000:1","Close to 1:1","Close to 1:1000","Irrelevant to buffering"], a:1},
+  {tag:"Chemistry", q:"Which technique separates compounds based on differences in boiling point?", choices:["Chromatography","Distillation","Filtration","Electrophoresis"], a:1},
+
+  {tag:"Biology", q:"During which phase of mitosis do sister chromatids separate and move to opposite poles?", choices:["Prophase","Metaphase","Anaphase","Telophase"], a:2},
+  {tag:"Biology", q:"The Krebs cycle takes place in which cellular compartment?", choices:["Cytoplasm","Mitochondrial matrix","Nucleus","Golgi apparatus"], a:1},
+  {tag:"Biology", q:"Which enzyme unwinds the DNA double helix during replication?", choices:["DNA polymerase","Helicase","Ligase","Primase"], a:1},
+  {tag:"Biology", q:"In Mendelian genetics, a testcross is used to determine:", choices:["An organism's phenotype","Whether an organism is homozygous or heterozygous dominant","The number of chromosomes","The mutation rate"], a:1},
+  {tag:"Biology", q:"Which of these is NOT one of Darwin's proposed mechanisms/observations underlying natural selection?", choices:["Variation exists within populations","Traits are heritable","Acquired traits are passed to offspring","More offspring are produced than survive"], a:2},
+  {tag:"Biology", q:"Facilitated diffusion across a membrane requires:", choices:["ATP hydrolysis","A concentration gradient and a channel or carrier protein","Active transport pumps","No membrane proteins at all"], a:1},
+  {tag:"Biology", q:"Which molecule is the primary electron carrier reduced during glycolysis?", choices:["FADH₂","NADH","ATP","Acetyl-CoA"], a:1},
+  {tag:"Biology", q:"A population in Hardy-Weinberg equilibrium requires all of the following EXCEPT:", choices:["No mutation","Random mating","Natural selection acting on alleles","No gene flow"], a:2},
+
+  {tag:"Math", q:"The derivative of ln(x) with respect to x is:", choices:["x","1/x","ln(x)","eˣ"], a:1},
+  {tag:"Math", q:"Which test determines convergence of a series by comparing the ratio of successive terms?", choices:["Ratio test","Root test","Integral test","Comparison test"], a:0},
+  {tag:"Math", q:"A matrix is invertible if and only if its determinant is:", choices:["Zero","Negative","Non-zero","Equal to 1"], a:2},
+  {tag:"Math", q:"In statistics, a Type I error refers to:", choices:["Failing to reject a false null hypothesis","Rejecting a true null hypothesis","Accepting a true alternative hypothesis","A sampling bias"], a:1},
+  {tag:"Math", q:"The eigenvalues of a real symmetric matrix are always:", choices:["Complex","Negative","Real","Equal to each other"], a:2},
+
+  {tag:"Astronomy", q:"A main-sequence star fuses hydrogen into helium primarily through which process (for stars like the Sun)?", choices:["CNO cycle only","Proton-proton chain","Triple-alpha process","Silicon burning"], a:1},
+  {tag:"Astronomy", q:"Which type of supernova results from the core collapse of a massive star?", choices:["Type Ia","Type II","Kilonova","Nova"], a:1},
+  {tag:"Astronomy", q:"The cosmic microwave background radiation is best explained as:", choices:["Light from distant galaxies","Residual heat from the early universe's recombination era","Emission from the Sun","Radiation from black holes"], a:1},
+  {tag:"Astronomy", q:"Redshift of distant galaxies is primarily interpreted as evidence for:", choices:["Galactic collisions","An expanding universe","Dark matter halos","Stellar aging"], a:1},
+
+  {tag:"Earth Sci", q:"Plate tectonic boundaries where two plates move apart are called:", choices:["Convergent","Divergent","Transform","Subduction"], a:1},
+  {tag:"Earth Sci", q:"The greenhouse effect is primarily driven by gases that absorb and re-emit:", choices:["Ultraviolet radiation","Visible light","Infrared radiation","X-rays"], a:2},
+  {tag:"Earth Sci", q:"Which rock type forms from the cooling and crystallization of magma or lava?", choices:["Sedimentary","Metamorphic","Igneous","Chemical"], a:2}
+];
+
+let deck = [];
+let current = null;
+let score = 0;
+let best = 0;
+let timeLeft = 60;
+let timerId = null;
+let answered = false;
+const CIRC = 163.36;
+
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const qtagEl = document.getElementById('qtag');
+const questionEl = document.getElementById('question');
+const choicesEl = document.getElementById('choices');
+const feedbackEl = document.getElementById('feedback');
+const clockNum = document.getElementById('clockNum');
+const clockFill = document.getElementById('clockFill');
+const barFill = document.getElementById('barFill');
+const wipeEl = document.getElementById('wipe');
+const endcard = document.getElementById('endcard');
+const finalScoreEl = document.getElementById('finalScore');
+const bestLineEl = document.getElementById('bestLine');
+const copyBtn = document.getElementById('copyBtn');
+
+async function copyQuestion(){
+  if(!current) return;
+  const text = current.q + '\n' + current.choices.map((c,i)=>String.fromCharCode(65+i)+') '+c).join('\n');
+  try{
+    await navigator.clipboard.writeText(text);
+  }catch(e){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand('copy'); }catch(err){}
+    document.body.removeChild(ta);
+  }
+  copyBtn.textContent = 'Copied';
+  copyBtn.classList.add('copied');
+  setTimeout(()=>{ copyBtn.textContent = 'Copy'; copyBtn.classList.remove('copied'); }, 1200);
+}
+copyBtn.addEventListener('click', copyQuestion);
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+async function loadBest(){
+  try{
+    const r = await window.storage.get('best-score');
+    if(r && r.value){ best = parseInt(r.value,10) || 0; }
+  }catch(e){ best = 0; }
+  bestEl.textContent = best;
+}
+
+async function saveBest(){
+  try{ await window.storage.set('best-score', String(best)); }catch(e){}
+}
+
+function nextQuestion(){
+  if(deck.length === 0){ deck = shuffle(QUESTIONS); }
+  current = deck.pop();
+  answered = false;
+  feedbackEl.textContent = '';
+  qtagEl.textContent = current.tag.toUpperCase();
+  questionEl.textContent = current.q;
+  choicesEl.innerHTML = '';
+  const order = shuffle(current.choices.map((c,i)=>({text:c, correct:i===current.a})));
+  order.forEach(opt=>{
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    btn.textContent = opt.text;
+    btn.onclick = () => selectChoice(btn, opt.correct);
+    choicesEl.appendChild(btn);
+  });
+}
+
+function selectChoice(btn, isCorrect){
+  if(answered) return;
+  answered = true;
+  const all = choicesEl.querySelectorAll('.choice');
+  all.forEach(b=>b.disabled = true);
+  if(isCorrect){
+    btn.classList.add('correct');
+    score++;
+    scoreEl.textContent = score;
+    feedbackEl.textContent = pick(["Correct.","Nice.","Right.","Good."]);
+  } else {
+    btn.classList.add('wrong');
+    all.forEach(b=>{ if(b.textContent === current.choices[current.a]) b.classList.add('correct'); });
+    feedbackEl.textContent = "Not quite.";
+  }
+  setTimeout(()=>{ if(timeLeft > 0) nextQuestion(); }, 550);
+}
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+function tick(){
+  timeLeft--;
+  if(timeLeft < 0){ endRound(); return; }
+  clockNum.textContent = timeLeft;
+  const frac = timeLeft/60;
+  clockFill.style.strokeDashoffset = String(CIRC*(1-frac));
+  barFill.style.width = (frac*100)+'%';
+  if(timeLeft <= 10){
+    clockFill.style.stroke = 'var(--coral)';
+    barFill.style.background = 'var(--coral)';
+  }
+}
+
+async function endRound(){
+  clearInterval(timerId);
+  if(score > best){ best = score; bestEl.textContent = best; await saveBest(); }
+  finalScoreEl.textContent = score;
+  bestLineEl.textContent = 'Best: ' + best;
+  endcard.classList.remove('hidden');
+  wipeEl.classList.remove('active');
+  void wipeEl.offsetWidth;
+  wipeEl.classList.add('active');
+  setTimeout(startRound, 1600);
+}
+
+function startRound(){
+  endcard.classList.add('hidden');
+  wipeEl.classList.remove('active');
+  score = 0;
+  scoreEl.textContent = 0;
+  timeLeft = 60;
+  clockNum.textContent = 60;
+  clockFill.style.stroke = 'var(--yellow)';
+  clockFill.style.strokeDashoffset = '0';
+  barFill.style.background = 'linear-gradient(90deg, var(--yellow), var(--coral))';
+  barFill.style.width = '100%';
+  deck = shuffle(QUESTIONS);
+  nextQuestion();
+  clearInterval(timerId);
+  timerId = setInterval(tick, 1000);
+}
+
+(async function init(){
+  await loadBest();
+  startRound();
+})();
+</script>
+</body>
+</html>
